@@ -262,7 +262,7 @@ Bias matrix from layer 2 to layer 3
 Prediction for input [0.0, 1.0]: 1.0
 Prediction for input [1.0, 1.0]: 1.3301974602280748E-273
 ```
-We find that the outputs are very close to our dataset. `1.3301974602280748E-273` means 1.33×10^-273 which is a very small error indicating that out training was done very well!
+We find that the outputs are very close to our dataset. `2.6603949204561495E-273` means 2.66×10^-273 which is a very small error indicating that out training was done very well!
 
 
 **But sometimes, the network may not train successfully, such as this example**
