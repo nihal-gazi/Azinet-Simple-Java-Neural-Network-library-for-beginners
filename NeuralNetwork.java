@@ -1,5 +1,5 @@
 import java.util.*;
-import java.util.function.*;
+
 public class NeuralNetwork {
     /**
     Library name(ID): "Azinet"
@@ -10,7 +10,8 @@ public class NeuralNetwork {
     (Under MIT Licence)
      */
     Random random = new Random();
-
+    
+    
     
     private int[] structure;
     private Matrix[] weights;
@@ -26,7 +27,7 @@ public class NeuralNetwork {
 
     boolean initialize_bias = false;
 
-    String activation = "sigmoid"; // choose from "sigmoid", "tanh" and "relu"
+    String activation = "sigmoid";
 
     // Constructor to create a neural network with the given structure
     public NeuralNetwork(int[] structure, boolean randomInitialize) {
@@ -302,6 +303,89 @@ public class NeuralNetwork {
 
     }
 
+    public void train_stochastic_v2(double[][] input, double[][] output, int epochs, double alpha, double update_probability){
+        //alpha is the learning rate
+
+        //update probability is the probability of updating a weight in the network
+        //if update_probability = 1.0, it perfectly behaves like gradient descent
+        //lower update_probability will allow faster learning but inaccurate results
+
+        double best_error = Double.MAX_VALUE;
+
+        for(int epoch = 1; epoch<=epochs ; epoch++){
+            double previous_best_error = best_error; //storing a copy of best error before updation
+            int sample_index = random(0 , input.length-1);
+            for (int i = structure.length - 1 -1; i >=0 ; i--) {
+
+                for (int row = 0; row < weights[i].rows; row++) {
+                    for (int col = 0; col < weights[i].columns; col++) {
+                        if(Math.random() < update_probability){
+                            //store old weight
+                            double weight = weights[i].data[row][col];
+
+                            //calculate LHE
+                            weights[i].data[row][col] = weight + alpha;
+                            double error_L = Math.abs(calculateLoss(input[sample_index] , output[sample_index]));
+
+                            //calculate RHE
+                            weights[i].data[row][col] = weight - alpha;
+                            double error_R = Math.abs(calculateLoss(input[sample_index] , output[sample_index]));
+
+                            //set weights back to normal
+                            weights[i].data[row][col] = weight;
+
+                            //compare and set
+                            if(error_L<error_R){weights[i].data[row][col] = weight + alpha;  }
+                            else{weights[i].data[row][col] = weight - alpha; }
+                        }
+                    }
+                }
+                if(update_bias){
+                    for (int row = 0; row < biases[i].rows; row++) {
+
+                        if(Math.random() < update_probability){
+                            //store old bias
+                            double bias = biases[i].data[row][0];
+
+                            //calculate LHE
+                            biases[i].data[row][0] = bias + alpha;
+                            double error_L = Math.abs(calculateLoss(input[sample_index] , output[sample_index]));
+
+                            //calculate RHE
+                            biases[i].data[row][0] = bias - alpha;
+                            double error_R = Math.abs(calculateLoss(input[sample_index] , output[sample_index]));
+
+                            //set biases to normal
+                            biases[i].data[row][0] = bias;
+
+                            //compare and set
+                            if(error_L<error_R){biases[i].data[row][0] = bias + alpha; }
+                            else{biases[i].data[row][0] = bias - alpha; }
+                        }
+                    }
+                }
+
+            }
+            best_error = calculateTotalError(input , output);
+
+            System.out.println("Best error="+best_error+"\t\tepoch="+epoch);
+
+            //reduce alpha, if learning is stagnant
+            if(Math.random() <= update_probability && (Math.abs(previous_best_error-best_error) < Math.pow(10,-7))){alpha = alpha/10;}
+            if(best_error == 0){
+                System.out.println("NeuralNetwork.java : [Best accuracy achieved. Training stopped.]");
+                break;
+            }
+            if(alpha == 0){
+                System.out.println("NeuralNetwork.java : [Maximum accuracy achieved. Training stopped.]");
+                break;
+            }
+            // print_weights();
+            // print_biases();
+        }
+
+    }
+
     //clean display of weights
     public void print_weights(){
         System.out.println("\n----------------------------------------");
@@ -325,217 +409,245 @@ public class NeuralNetwork {
         }
         System.out.println("----------------------------------------\n");
     }
-}
-
-class Matrix {
-    public int rows;
-    public int columns;
-    public double[][] data;
 
     /**
-    Simple Matrix library
-    Coded by Nihal Gazi for Azinet
-    */
+    Simplified and readable implementation of Genetic Algorithm. 
+    codes below this can potentially work.
+    deletion of all codes below will not affect the other codes of the library.
+     */
 
-    // Constructor to create a matrix with given rows and columns
-    public Matrix(int rows, int columns) {
-        this.rows = rows;
-        this.columns = columns;
-        this.data = new double[rows][columns];
-    }
+    public void train_GA_v1(double[][] inputs, double[][] targets, int generations) {
+        int populationSize = 10;
+        int numChanges = 10;
 
-    public static Matrix from_array(double[] arr) {
-        Matrix result = new Matrix(arr.length, 1);
-        for (int i = 0; i < arr.length; i++) {
-            result.data[i][0] = arr[i];
-        }
-        return result;
-    }
-
-    public Matrix(String input) {
-        String[] rowsArray = input.split(" ; "); // Split input into rows
-        this.rows = rowsArray.length;
-        this.columns = rowsArray[0].split(" ").length;
-        this.data = new double[rows][columns];
-
-        for (int i = 0; i < rows; i++) {
-            String[] values = rowsArray[i].split(" "); // Split row into individual values
-            for (int j = 0; j < columns; j++) {
-                this.data[i][j] = Double.parseDouble(values[j]);
-            }
-        }
-    }
-
-    public Matrix map(Function<Double, Double> function) {
-        Matrix result = new Matrix(rows, columns);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                result.data[i][j] = function.apply(data[i][j]);
-            }
-        }
-        return result;
-    }
-
-    public void fill(double val){
-        for(int i=0;i<data.length;i++){
-            for(int j=0;j<data[0].length;j++){
-                data[i][j]=val;
-            }
-        }
-    }
-
-    // Method to set the value at a specific row and column
-    public void set(int row, int column, double value) {
-        if (row >= 0 && row < rows && column >= 0 && column < columns) {
-            data[row][column] = value;
-        } else {
-            System.out.println("Invalid row or column index.");
-        }
-    }
-
-    public void set(String input) {
-        String[] rowsArray = input.split(" ; "); // Split input into rows
-        this.rows = rowsArray.length;
-        this.columns = rowsArray[0].split(" ").length;
-        this.data = new double[rows][columns];
-
-        for (int i = 0; i < rows; i++) {
-            String[] values = rowsArray[i].split(" "); // Split row into individual values
-            for (int j = 0; j < columns; j++) {
-                this.data[i][j] = Double.parseDouble(values[j]);
-            }
-        }
-    }
-
-    // Method to get the value at a specific row and column
-    public double get(int row, int column) {
-        if (row >= 0 && row < rows && column >= 0 && column < columns) {
-            return data[row][column];
-        } else {
-            System.out.println("Invalid row or column index.");
-            return -1; // You can choose an appropriate default value
-        }
-    }
-
-    // Method to print the matrix
-    public void print_matrix() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                System.out.print(data[i][j] + "\t");
-            }
-            System.out.println();
-        }
-    }
-
-    public static Matrix multiply(Matrix matrix1, Matrix matrix2) {
-        int rowsA = matrix1.rows;
-        int columnsA = matrix1.columns;
-        int rowsB = matrix2.rows;
-        int columnsB = matrix2.columns;
-
-        // Check if the matrices can be multiplied
-        if (columnsA != rowsB) {
-            System.out.println("Cannot multiply the matrices. Invalid dimensions.");
-            System.out.println("dim1="+rowsA+"x"+columnsA);
-            System.out.println("dim2="+rowsB+"x"+columnsB);
-            System.exit(0);
-            return null;
+        // Step 1: Initialize a population of neural networks with random weights
+        NeuralNetwork[] population = new NeuralNetwork[populationSize];
+        for (int i = 0; i < populationSize; i++) {
+            population[i] = new NeuralNetwork(structure, true); // Assuming you want to initialize randomly
         }
 
-        Matrix result = new Matrix(rowsA, columnsB);
+        for (int generation = 0; generation < generations; generation++) {
+            System.out.println("gen " + generation + " : " + Arrays.toString(population));
 
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < columnsB; j++) {
-                double sum = 0;
-                for (int k = 0; k < columnsA; k++) {
-                    sum += matrix1.data[i][k] * matrix2.data[k][j];
+            // Step 2: Make small changes in weights for each network
+            for (int i = 0; i < populationSize; i++) {
+                for (int j = 0; j < numChanges; j++) {
+                    mutateWeights(population[i], 0.1); // You can adjust the mutation rate as needed
+                    double mutatedFitness = 1.0 / (1.0 + population[i].calculateTotalError(inputs, targets));
+
+                    // No need to create new objects, directly modify weights and biases
+                    // Choose the better one between the original and the mutated network
+                    if (mutatedFitness > 1.0 / (1.0 + population[i].calculateTotalError(inputs, targets))) {
+                        // The weights and biases are already modified in the original network
+                        // as mutateWeights directly modifies the object
+                    }
                 }
-                result.data[i][j] = sum;
+            }
+
+            // Step 3: Choose the best network
+            double[] fitness = new double[populationSize];
+            for (int i = 0; i < populationSize; i++) {
+                fitness[i] = 1.0 / (1.0 + population[i].calculateTotalError(inputs, targets));
+            }
+
+            int bestIndex = selectIndividual(fitness); // You can reuse the selectIndividual method
+
+            // Step 4: Populate the array with the chosen best network
+            for (int i = 0; i < populationSize; i++) {
+                copyWeights(population[i], population[bestIndex]);
+            }
+        }
+    }
+
+    // Helper method to copy weights directly
+    private void copyWeights(NeuralNetwork destination, NeuralNetwork source) {
+        for (int layer = 0; layer < destination.weights.length; layer++) {
+            for (int i = 0; i < destination.weights[layer].rows; i++) {
+                for (int j = 0; j < destination.weights[layer].columns; j++) {
+                    destination.weights[layer].set(i, j, source.weights[layer].get(i, j));
+                }
             }
         }
 
-        return result;
+        // Similar copying can be applied to biases if needed
     }
 
-    public Matrix multiply(double scalar) {
-        Matrix result = new Matrix(rows, columns);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                result.data[i][j] = this.data[i][j] * scalar;
-            }
-        }
-        return result;
-    }
-
-    public static Matrix transpose(Matrix inputMatrix) {
-        int rows = inputMatrix.columns;
-        int columns = inputMatrix.rows;
-        Matrix result = new Matrix(rows, columns);
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                result.data[i][j] = inputMatrix.data[j][i];
+    // Helper method to mutate weights directly
+    private void mutateWeights(NeuralNetwork network, double mutationRate) {
+        Random random = new Random();
+        for (int layer = 0; layer < network.weights.length; layer++) {
+            for (int i = 0; i < network.weights[layer].rows; i++) {
+                for (int j = 0; j < network.weights[layer].columns; j++) {
+                    if (random.nextDouble() < mutationRate) {
+                        // Apply a small random change to the weight
+                        network.weights[layer].set(i, j, network.weights[layer].get(i, j) + random.nextGaussian());
+                    }
+                }
             }
         }
 
-        return result;
+        // Similar mutation can be applied to biases if needed
     }
 
-    public static Matrix add(Matrix matrix1, Matrix matrix2) {
-        int rowsA = matrix1.rows;
-        int columnsA = matrix1.columns;
-        int rowsB = matrix2.rows;
-        int columnsB = matrix2.columns;
+    public void train_GA_v2(double[][] inputs, double[][] targets, int populationSize, int generations) {
+        int crossover_k = 2;
+        double mutation_p = 0.1;
 
-        // Check if the matrices can be added
-        if (rowsA != rowsB || columnsA != columnsB) {
-            System.out.println("Cannot add the matrices. Invalid dimensions.");
-            return null;
+        // Create an initial population of neural networks
+        NeuralNetwork[] population = new NeuralNetwork[populationSize];
+        for (int i = 0; i < populationSize; i++) {
+            population[i] = new NeuralNetwork(structure, true); // Assuming you want to initialize randomly
         }
 
-        Matrix result = new Matrix(rowsA, columnsA);
+        for (int generation = 0; generation < generations; generation++) {
 
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < columnsA; j++) {
-                result.data[i][j] = matrix1.data[i][j] + matrix2.data[i][j];
+            // Evaluate the fitness of each individual in the population
+            double[] fitness = new double[populationSize];
+            for (int i = 0; i < populationSize; i++) {
+                fitness[i] = 1.0 / (1.0 + population[i].calculateTotalError(inputs, targets));
             }
-        }
 
-        return result;
-    }
+            // Select the top individuals based on fitness
+            NeuralNetwork[] selected = new NeuralNetwork[populationSize];
+            int index = selectIndividual(fitness);
+            for (int i = 0; i < populationSize; i++) {
 
-    public static Matrix subtract(Matrix matrix1, Matrix matrix2) {
-        int rowsA = matrix1.rows;
-        int columnsA = matrix1.columns;
-        int rowsB = matrix2.rows;
-        int columnsB = matrix2.columns;
+                // Debugging statement
+                System.out.println("Selected index for parent " + i + ": " + index);
 
-        // Check if the matrices can be subtracted
-        if (rowsA != rowsB || columnsA != columnsB) {
-            System.out.println("Cannot add the matrices. Invalid dimensions.");
-            return null;
-        }
-
-        Matrix result = new Matrix(rowsA, columnsA);
-
-        for (int i = 0; i < rowsA; i++) {
-            for (int j = 0; j < columnsA; j++) {
-                result.data[i][j] = matrix1.data[i][j] - matrix2.data[i][j];
+                copyNet(selected[i], population[index]); // Assuming you have a clone method in NeuralNetwork
             }
+
+            // Apply crossover and mutation to create a new generation
+            for (int i = 0; i < populationSize; i += 2) {
+                crossover(selected[i], selected[i + 1], crossover_k);
+                mutate(selected[i], mutation_p);
+                mutate(selected[i + 1], mutation_p);
+            }
+
+            // Replace the old population with the new generation
+            population = Arrays.copyOf(selected, populationSize);
+
         }
-
-        return result;
     }
+    // Helper function to select an individual based on fitness
+    private int selectIndividual(double[] fitness) {
+        double totalFitness = Arrays.stream(fitness).sum();
+        double randomValue = random.nextDouble() * totalFitness;
 
-    //for neural network
-    public double sumOfSquares() {
         double sum = 0;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < columns; j++) {
-                sum += data[i][j] * data[i][j];
+        for (int i = 0; i < fitness.length; i++) {
+            sum += fitness[i];
+            if (sum >= randomValue) {
+                int selected = Math.min(i, fitness.length - 1);
+
+                // Debugging statement
+                System.out.println("Selected index: " + selected);
+
+                return selected;
             }
         }
-        return sum;
+
+        // This should not happen, but just in case
+        return fitness.length - 1;
     }
 
+    // Helper function to perform crossover between two neural networks
+    private void crossover(NeuralNetwork parent1, NeuralNetwork parent2, int kPoints) {
+        // Ensure that both parents have the same structure
+        if (!Arrays.equals(parent1.structure, parent2.structure)) {
+            System.out.println("Incompatible parents for crossover.");
+            return;
+        }
+
+        // Debugging statement
+        System.out.println("Crossover between parents: " + Arrays.toString(parent1.structure));
+
+        // Ensure that both parents have the same structure
+        if (!Arrays.equals(parent1.structure, parent2.structure)) {
+            System.out.println("Incompatible parents for crossover.");
+            return;
+        }
+
+        // Randomly select k crossover points
+        int[] crossoverPoints = new int[kPoints];
+        for (int i = 0; i < kPoints; i++) {
+            crossoverPoints[i] = random.nextInt(parent1.weights.length * 2); // Considering both weights and biases
+        }
+
+        // Sort the crossover points for easier processing
+        Arrays.sort(crossoverPoints);
+
+        int currentPoint = 0;
+        boolean swap = false;
+
+        // Iterate through the layers of the neural network
+        for (int i = 0; i < parent1.weights.length; i++) {
+            // Check for null matrices in parents
+            if (parent1.weights[i] == null || parent1.biases[i] == null ||
+            parent2.weights[i] == null || parent2.biases[i] == null) {
+                System.out.println("Null matrix in crossover.");
+                return;
+            }
+
+            Matrix temp;
+
+            // Swap genetic material between parents at crossover points
+            if (swap) {
+                // Swap weights
+                temp = parent1.weights[i];
+                parent1.weights[i] = parent2.weights[i];
+                parent2.weights[i] = temp;
+
+                // Swap biases
+                temp = parent1.biases[i];
+                parent1.biases[i] = parent2.biases[i];
+                parent2.biases[i] = temp;
+            }
+
+            // Check if the current point is a crossover point
+            if (currentPoint < kPoints && i * 2 == crossoverPoints[currentPoint]) {
+                swap = !swap; // Toggle swapping behavior at crossover points
+                currentPoint++;
+            }
+        }
+    }
+
+    private void mutate(NeuralNetwork individual, double mutationProbability) {
+        // Debugging statement
+        System.out.println("Mutating individual with structure: " + Arrays.toString(individual.structure));
+        // Check for null individual
+        if (individual == null) {
+            System.out.println("Null individual in mutation.");
+            return;
+        }
+
+        for (int i = 0; i < individual.weights.length; i++) {
+            // Check for null matrices in individual
+            if (individual.weights[i] == null || individual.biases[i] == null) {
+                System.out.println("Null matrix in mutation.");
+                return;
+            }
+
+            // Mutate weights
+            for (int row = 0; row < individual.weights[i].rows; row++) {
+                for (int col = 0; col < individual.weights[i].columns; col++) {
+                    if (random.nextDouble() < mutationProbability) {
+                        // Mutate with a random value between -1 and 1
+                        individual.weights[i].data[row][col] = 2 * random.nextDouble() - 1;
+                    }
+                }
+            }
+
+            // Mutate biases
+            for (int row = 0; row < individual.biases[i].rows; row++) {
+                if (random.nextDouble() < mutationProbability) {
+                    // Mutate with a random value between -1 and 1
+                    individual.biases[i].data[row][0] = 2 * random.nextDouble() - 1;
+                }
+            }
+        }
+    }
 }
+
+    
