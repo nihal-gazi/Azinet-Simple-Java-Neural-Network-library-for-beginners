@@ -265,7 +265,7 @@ Prediction for input [1.0, 1.0]: 1.3301974602280748E-273
 We find that the outputs are very close to our dataset. `2.6603949204561495E-273` means 2.66×10^-273 which is a very small error indicating that out training was done very well!
 
 
-**But sometimes, the network may not train successfully, such as this example**
+**But sometimes, the network may not train successfully, such as this example.**
 Failure case:
 ```
 NeuralNetworkDriver.main();
