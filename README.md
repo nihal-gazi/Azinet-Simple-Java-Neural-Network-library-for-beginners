@@ -1,4 +1,7 @@
 # Azinet: Simple Java Neural Network library for beginners
+(by Nihal Gazi).
+
+
 Simple and easy-to-use neural network library made into a SINGLE class. Just copy paste into a class, and start using it!
 
 **No need for advanced knowledge. Not even calculus is required. This library is made keeping in mind that it is understandable to high school students.**
