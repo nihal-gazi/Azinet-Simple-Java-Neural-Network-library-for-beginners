@@ -29,7 +29,7 @@ If `false`, then all weights will be initialized to 0.
 ### Dataset
 Make 2 separate double 2D array: `input` and `target`. 
 
-for example, a XOR dataset looks like this:
+for example, a XOR gate dataset looks like this:
 ```java
 double[][] inputs = {
             {0,0},
@@ -38,7 +38,7 @@ double[][] inputs = {
             {1,1}
         };
 
-        double[][] targets = {
+double[][] targets = {
             {0},
             {1},
             {1},
