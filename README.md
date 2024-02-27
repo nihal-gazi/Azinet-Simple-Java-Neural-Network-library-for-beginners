@@ -265,6 +265,80 @@ Prediction for input [1.0, 1.0]: 1.3301974602280748E-273
 We find that the outputs are very close to our dataset. `1.3301974602280748E-273` means 1.33×10^-273 which is a very small error indicating that out training was done very well!
 
 
+**But sometimes, the network may not train successfully, such as this example**
+Failure case:
+```
+NeuralNetworkDriver.main();
+Best error=1.5		epoch=1
+Best error=1.5		epoch=2
+Best error=1.5		epoch=3
+Best error=1.5		epoch=4
+Best error=1.5		epoch=5
+Best error=1.5		epoch=6
+Best error=1.5		epoch=7
+Best error=1.5		epoch=8
+Best error=1.5		epoch=9
+Best error=1.5		epoch=10
+Best error=1.5		epoch=11
+Best error=1.5		epoch=12
+Best error=1.5		epoch=13
+Best error=1.5		epoch=14
+Best error=1.5		epoch=15
+NeuralNetwork.java : [Maximum accuracy achieved. Training stopped.]
+
+----------------------------------------
+	WEIGHTS:
+
+Weight matrix from layer 0 to layer 1
+-25.654985069100753	994.8528615997126	
+-5.59504798232917	-1.4551338517727217	
+21.915198828488435	7.043195628326359	
+
+Weight matrix from layer 1 to layer 2
+-989.5821453296771	-10.344679763838485	0.033688608259041075	
+-1008.6223719017355	23.795389038249823	-30.64093074235585	
+-1027.3316422252321	1.7175238273506963	26.517645836677957	
+
+Weight matrix from layer 2 to layer 3
+980.7717364617635	2.600112474450789	21.035167094034684	
+
+----------------------------------------
+
+
+----------------------------------------
+	BIASES:
+
+Bias matrix from layer 0 to layer 1
+0.0	
+0.0	
+0.0	
+
+Bias matrix from layer 1 to layer 2
+0.0	
+0.0	
+0.0	
+
+Bias matrix from layer 2 to layer 3
+0.0	
+
+----------------------------------------
+
+Prediction for input [0.0, 1.0]: 0.5
+Prediction for input [1.0, 1.0]: 0.5
+
+```
+
+**Failure cases are NORMAL. You may need to run the net more than 1 time to get success.**
+
+------------
+
+## Final Words
+> This repository is made with the intention that it is to be used only for educational purposes.
+> Constructive Crticism from students and teachers is welcomed, and to be sent at nihalg2006@gmail.com.
+> Before sending email, please put the subject to `[Azinet]` in your email, so that I know that it is from you.
+
+------------
+
 
 
 
